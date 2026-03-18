@@ -3,14 +3,14 @@
   "version": "1.0.0",
   "description": "AI-agent-friendly Bun dev server workflow: detect changes, mark UI dirty, and restart on demand instead of constant hot-reload churn.",
   "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
   "bin": {
-    "bun-ai-dev-server": "./dist/cli.js"
+    "bun-ai-dev-server": "./src/cli.ts"
   },
   "files": [
-    "dist",
+    "src",
     "README.md",
     "LICENSE"
   ],
