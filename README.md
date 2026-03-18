@@ -14,7 +14,7 @@ Result: fewer disruptive reloads, better UX during active sessions, and a much s
 ## Install
 
 ```bash
-npm install --save-dev bun-ai-dev-server
+bun add --dev bun-ai-dev-server
 ```
 
 ## CLI usage
