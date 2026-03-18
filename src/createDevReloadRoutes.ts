@@ -1,7 +1,10 @@
-const DEFAULT_CHANGE_ENDPOINT_PATH = '/api/dev/changes';
+import {
+  DEFAULT_CHANGE_ENDPOINT_PATH,
+  DEFAULT_RESTART_ENDPOINT_PATH,
+  DEFAULT_RESTART_EXIT_CODE,
+} from './constants';
+
 const DEFAULT_RESTART_DELAY_MS = 100;
-const DEFAULT_RESTART_ENDPOINT_PATH = '/api/dev/restart';
-const DEFAULT_RESTART_EXIT_CODE = 99;
 
 type DevReloadClientController = ReadableStreamDefaultController<Uint8Array>;
 

@@ -1,6 +1,6 @@
-const DEFAULT_CHANGE_ENDPOINT_PATH = '/api/dev/changes';
+import { DEFAULT_CHANGE_ENDPOINT_PATH, DEFAULT_RESTART_ENDPOINT_PATH } from './constants';
+
 const DEFAULT_RELOAD_DELAY_MS = 1500;
-const DEFAULT_RESTART_ENDPOINT_PATH = '/api/dev/restart';
 
 type DevReloadHotkey = {
   key: string;

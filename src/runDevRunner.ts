@@ -2,11 +2,11 @@ import { spawn, type Subprocess } from 'bun';
 import { existsSync, type FSWatcher, watch } from 'fs';
 import { isAbsolute, relative, resolve } from 'path';
 
-const DEFAULT_CHANGE_ENDPOINT_PATH = '/api/dev/changes';
+import { DEFAULT_CHANGE_ENDPOINT_PATH, DEFAULT_RESTART_EXIT_CODE } from './constants';
+
 const DEFAULT_COMMAND = ['bun', 'run', 'server/index.ts'];
 const DEFAULT_LABEL = 'dev';
 const DEFAULT_NODE_ENV = 'development';
-const DEFAULT_RESTART_EXIT_CODE = 99;
 const DEFAULT_WATCH_DEBOUNCE_MS = 300;
 const DEFAULT_WATCH_PATTERN = '**/*.{ts,tsx,css,html,md}';
 
