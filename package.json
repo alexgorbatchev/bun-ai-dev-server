@@ -18,6 +18,8 @@
     "check": "bash scripts/check.sh",
     "format": "dprint fmt",
     "lint": "oxlint -c oxlintrc.json src/",
+    "test": "bun test",
+    "test:e2e": "bun test src/__tests__/runDevRunner.test.ts",
     "typecheck": "tsgo -p . --noEmit",
     "prepublishOnly": "bun run check"
   },
