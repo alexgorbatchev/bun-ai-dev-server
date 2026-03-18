@@ -1,0 +1,42 @@
+{
+  "name": "bun-ai-dev-server",
+  "version": "1.0.0",
+  "description": "AI-agent-friendly Bun dev server workflow: detect changes, mark UI dirty, and restart on demand instead of constant hot-reload churn.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "bun-ai-dev-server": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "check": "bash scripts/check.sh",
+    "format": "dprint fmt",
+    "lint": "oxlint -c oxlintrc.json src/",
+    "typecheck": "tsgo -p . --noEmit",
+    "prepublishOnly": "bun run check"
+  },
+  "engines": {
+    "bun": ">=1.3.0"
+  },
+  "keywords": [
+    "bun",
+    "dev",
+    "watcher",
+    "hot-reload",
+    "cli"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/bun": "^1.3.10",
+    "@typescript/native-preview": "^7.0.0-dev.20260316.1",
+    "dprint": "^0.53.0",
+    "oxlint": "^1.56.0",
+    "typescript": "^5.9.3"
+  }
+}
