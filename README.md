@@ -5,9 +5,10 @@
 Traditional hot reload and `--watch` are great for manual coding, but they break down when AI agents touch many files rapidly. You get frequent, unnecessary refreshes, UI interruptions, and reloads while you’re actively using the app.
 
 This package solves that by separating **change detection** from **restart/reload**:
+
 - a watch process tracks file updates and notifies your server
 - the frontend subscribes to a change stream and shows a "changes available" state
-- restart + page reload happen on demand (button or hotkey), when *you* decide
+- restart + page reload happen on demand (button or hotkey), when _you_ decide
 
 Result: fewer disruptive reloads, better UX during active sessions, and a much smoother agent-driven dev loop.
 
@@ -52,7 +53,7 @@ bun-ai-dev-server -- bun run server/index.ts
 Export and mount these routes in your Bun server so the frontend button has restart + change stream endpoints.
 
 ```ts
-import { createDevReloadRoutes } from 'bun-ai-dev-server';
+import { createDevReloadRoutes } from "bun-ai-dev-server";
 
 Bun.serve({
   port: 3100,
@@ -63,6 +64,7 @@ Bun.serve({
 ```
 
 `createDevReloadRoutes()` defaults:
+
 - `restartExitCode: 99`
 - `restartEndpointPath: /api/dev/restart`
 - `changeEndpointPath: /api/dev/changes`
@@ -73,15 +75,19 @@ Bun.serve({
 Use `createDevReloadClient()` to subscribe for dirty-state updates and trigger restart from a button.
 
 ```ts
-import { useEffect, useMemo, useState } from 'react';
-import { createDevReloadClient } from 'bun-ai-dev-server';
+import { useEffect, useMemo, useState } from "react";
+import { createDevReloadClient } from "bun-ai-dev-server";
 
 const devReloadClient = useMemo(() => createDevReloadClient(), []);
 const [hasChanges, setHasChanges] = useState(false);
 
-useEffect(() => devReloadClient.subscribe((event) => {
-  setHasChanges(event.dirty);
-}), [devReloadClient]);
+useEffect(
+  () =>
+    devReloadClient.subscribe((event) => {
+      setHasChanges(event.dirty);
+    }),
+  [devReloadClient],
+);
 
 useEffect(() => devReloadClient.installHotkey(), [devReloadClient]);
 
@@ -91,6 +97,7 @@ const onRestart = () => {
 ```
 
 `createDevReloadClient()` defaults match Date Maker behavior:
+
 - enabled only on non-standard ports
 - SSE stream: `/api/dev/changes`
 - restart endpoint: `/api/dev/restart`

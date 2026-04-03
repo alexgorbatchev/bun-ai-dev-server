@@ -1,4 +1,4 @@
-import { DEFAULT_CHANGE_ENDPOINT_PATH, DEFAULT_RESTART_ENDPOINT_PATH } from './constants';
+import { DEFAULT_CHANGE_ENDPOINT_PATH, DEFAULT_RESTART_ENDPOINT_PATH } from "./constants";
 
 const DEFAULT_RELOAD_DELAY_MS = 1500;
 
@@ -11,7 +11,7 @@ type DevReloadHotkey = {
 };
 
 const DEFAULT_RESTART_HOTKEY: DevReloadHotkey = {
-  key: 'X',
+  key: "X",
   ctrlKey: true,
   shiftKey: true,
   altKey: false,
@@ -23,11 +23,21 @@ export type DevReloadClientChangeEvent = {
   file?: string;
 };
 
+type DevReloadClientListener = (event: DevReloadClientChangeEvent) => void;
+
+type DevReloadClientCleanup = () => void;
+
+type DevReloadClientSubscribe = (listener: DevReloadClientListener) => DevReloadClientCleanup;
+
+type DevReloadClientRestart = () => Promise<void>;
+
+type DevReloadClientInstallHotkey = () => DevReloadClientCleanup;
+
 export type DevReloadClient = {
   enabled: boolean;
-  subscribe: (listener: (event: DevReloadClientChangeEvent) => void) => () => void;
-  restart: () => Promise<void>;
-  installHotkey: () => () => void;
+  subscribe: DevReloadClientSubscribe;
+  restart: DevReloadClientRestart;
+  installHotkey: DevReloadClientInstallHotkey;
 };
 
 export type CreateDevReloadClientOptions = {
@@ -44,7 +54,7 @@ function normalizeEndpointPath(value: string | undefined, fallbackValue: string)
     return fallbackValue;
   }
 
-  if (normalizedValue.startsWith('/')) {
+  if (normalizedValue.startsWith("/")) {
     return normalizedValue;
   }
 
@@ -52,11 +62,11 @@ function normalizeEndpointPath(value: string | undefined, fallbackValue: string)
 }
 
 function getActiveWindow(): Window | null {
-  return typeof window === 'undefined' ? null : window;
+  return typeof window === "undefined" ? null : window;
 }
 
 function resolveEnabled(activeWindow: Window | null, enabled: boolean | undefined): boolean {
-  if (typeof enabled === 'boolean') {
+  if (typeof enabled === "boolean") {
     return enabled;
   }
 
@@ -65,24 +75,24 @@ function resolveEnabled(activeWindow: Window | null, enabled: boolean | undefine
   }
 
   const port = activeWindow.location.port;
-  return port !== '' && port !== '80' && port !== '443';
+  return port !== "" && port !== "80" && port !== "443";
 }
 
 function parseDevChangeEvent(rawData: string): DevReloadClientChangeEvent | null {
-  if (rawData === 'connected') {
+  if (rawData === "connected") {
     return null;
   }
 
   try {
     const payload = JSON.parse(rawData);
-    if (typeof payload !== 'object' || payload === null) {
+    if (typeof payload !== "object" || payload === null) {
       return { dirty: true };
     }
 
     const dirtyValue = payload.dirty;
     const fileValue = payload.file;
-    const dirty = typeof dirtyValue === 'boolean' ? dirtyValue : true;
-    const file = typeof fileValue === 'string' && fileValue.trim().length > 0 ? fileValue : undefined;
+    const dirty = typeof dirtyValue === "boolean" ? dirtyValue : true;
+    const file = typeof fileValue === "string" && fileValue.trim().length > 0 ? fileValue : undefined;
 
     return file ? { dirty, file } : { dirty };
   } catch {
@@ -91,11 +101,13 @@ function parseDevChangeEvent(rawData: string): DevReloadClientChangeEvent | null
 }
 
 function isHotkeyMatch(event: KeyboardEvent, hotkey: DevReloadHotkey): boolean {
-  return event.key.toLowerCase() === hotkey.key.toLowerCase()
-    && event.ctrlKey === hotkey.ctrlKey
-    && event.shiftKey === hotkey.shiftKey
-    && event.altKey === hotkey.altKey
-    && event.metaKey === hotkey.metaKey;
+  return (
+    event.key.toLowerCase() === hotkey.key.toLowerCase() &&
+    event.ctrlKey === hotkey.ctrlKey &&
+    event.shiftKey === hotkey.shiftKey &&
+    event.altKey === hotkey.altKey &&
+    event.metaKey === hotkey.metaKey
+  );
 }
 
 export function createDevReloadClient(options: CreateDevReloadClientOptions = {}): DevReloadClient {
@@ -106,7 +118,7 @@ export function createDevReloadClient(options: CreateDevReloadClientOptions = {}
   const reloadDelayMs = options.reloadDelayMs ?? DEFAULT_RELOAD_DELAY_MS;
   const hotkey: DevReloadHotkey = { ...DEFAULT_RESTART_HOTKEY, ...options.hotkey };
 
-  const subscribe = (listener: (event: DevReloadClientChangeEvent) => void): () => void => {
+  const subscribe: DevReloadClientSubscribe = (listener) => {
     if (!enabled || !activeWindow) {
       return () => {
         return;
@@ -133,27 +145,27 @@ export function createDevReloadClient(options: CreateDevReloadClientOptions = {}
         return;
       }
 
-      handlePayload(typeof event.data === 'string' ? event.data : String(event.data));
+      handlePayload(typeof event.data === "string" ? event.data : String(event.data));
     };
 
     eventSource.onmessage = handleMessage;
-    eventSource.addEventListener('change', handleChangeEvent);
+    eventSource.addEventListener("change", handleChangeEvent);
     eventSource.onerror = () => {
       eventSource.close();
     };
 
     return () => {
-      eventSource.removeEventListener('change', handleChangeEvent);
+      eventSource.removeEventListener("change", handleChangeEvent);
       eventSource.close();
     };
   };
 
-  const restart = async (): Promise<void> => {
+  const restart: DevReloadClientRestart = async () => {
     if (!enabled || !activeWindow) {
       return;
     }
 
-    const response = await fetch(restartEndpointPath, { method: 'POST' });
+    const response = await fetch(restartEndpointPath, { method: "POST" });
     if (!response.ok) {
       throw new Error(`Failed to restart dev server (${response.status})`);
     }
@@ -163,7 +175,7 @@ export function createDevReloadClient(options: CreateDevReloadClientOptions = {}
     }, reloadDelayMs);
   };
 
-  const installHotkey = (): () => void => {
+  const installHotkey: DevReloadClientInstallHotkey = () => {
     if (!enabled || !activeWindow) {
       return () => {
         return;
@@ -181,10 +193,10 @@ export function createDevReloadClient(options: CreateDevReloadClientOptions = {}
       });
     };
 
-    activeWindow.addEventListener('keydown', handleKeyDown);
+    activeWindow.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      activeWindow.removeEventListener('keydown', handleKeyDown);
+      activeWindow.removeEventListener("keydown", handleKeyDown);
     };
   };
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
 
-import { runDevRunner } from './runDevRunner';
+import { runDevRunner } from "./runDevRunner";
 
 runDevRunner();

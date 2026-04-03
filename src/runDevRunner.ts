@@ -1,14 +1,14 @@
-import { spawn, type Subprocess } from 'bun';
-import { existsSync, type FSWatcher, watch } from 'fs';
-import { isAbsolute, relative, resolve } from 'path';
+import { spawn, type Subprocess } from "bun";
+import { existsSync, type FSWatcher, watch } from "fs";
+import { isAbsolute, relative, resolve } from "path";
 
-import { DEFAULT_CHANGE_ENDPOINT_PATH, DEFAULT_RESTART_EXIT_CODE } from './constants';
+import { DEFAULT_CHANGE_ENDPOINT_PATH, DEFAULT_RESTART_EXIT_CODE } from "./constants";
 
-const DEFAULT_COMMAND = ['bun', 'run', 'server/index.ts'];
-const DEFAULT_LABEL = 'dev';
-const DEFAULT_NODE_ENV = 'development';
+const DEFAULT_COMMAND = ["bun", "run", "server/index.ts"];
+const DEFAULT_LABEL = "dev";
+const DEFAULT_NODE_ENV = "development";
 const DEFAULT_WATCH_DEBOUNCE_MS = 300;
-const DEFAULT_WATCH_PATTERN = '**/*.{ts,tsx,css,html,md}';
+const DEFAULT_WATCH_PATTERN = "**/*.{ts,tsx,css,html,md}";
 
 type DevRunnerState = {
   proc: Subprocess | null;
@@ -51,16 +51,16 @@ function parseEnabled(value: string | undefined, fallbackValue: boolean): boolea
   }
 
   const normalizedValue = value.trim().toLowerCase();
-  return normalizedValue !== '0' && normalizedValue !== 'false' && normalizedValue !== 'off';
+  return normalizedValue !== "0" && normalizedValue !== "false" && normalizedValue !== "off";
 }
 
 function normalizePath(path: string): string {
-  return path.replaceAll('\\', '/');
+  return path.replaceAll("\\", "/");
 }
 
 function getCommand(): string[] {
   const rawArgs = process.argv.slice(2);
-  const commandFromArgs = rawArgs[0] === '--' ? rawArgs.slice(1) : rawArgs;
+  const commandFromArgs = rawArgs[0] === "--" ? rawArgs.slice(1) : rawArgs;
   const commandFromEnv = process.env.DEV_COMMAND?.trim().split(/\s+/) ?? [];
 
   if (commandFromArgs.length > 0) {
@@ -90,11 +90,11 @@ function toRelativeWatchPath(watchRoot: string, filename: string): string | null
   }
 
   if (!isAbsolute(filename)) {
-    return normalizedFilename.startsWith('./') ? normalizedFilename.slice(2) : normalizedFilename;
+    return normalizedFilename.startsWith("./") ? normalizedFilename.slice(2) : normalizedFilename;
   }
 
   const relativePath = normalizePath(relative(watchRoot, filename));
-  if (relativePath === '..' || relativePath.startsWith('../')) {
+  if (relativePath === ".." || relativePath.startsWith("../")) {
     return null;
   }
 
@@ -107,7 +107,7 @@ function getChangeEndpointPath(): string {
     return DEFAULT_CHANGE_ENDPOINT_PATH;
   }
 
-  if (rawValue.startsWith('/')) {
+  if (rawValue.startsWith("/")) {
     return rawValue;
   }
 
@@ -115,7 +115,7 @@ function getChangeEndpointPath(): string {
 }
 
 function getConfig(): DevRunnerConfig {
-  const port = process.env.PORT ?? '3100';
+  const port = process.env.PORT ?? "3100";
   const respectGitIgnore = parseEnabled(process.env.DEV_WATCH_GITIGNORE, true);
 
   return {
@@ -129,7 +129,7 @@ function getConfig(): DevRunnerConfig {
     watchPattern: process.env.DEV_WATCH_PATTERN?.trim() || DEFAULT_WATCH_PATTERN,
     watchDebounceMs: parseInteger(process.env.DEV_WATCH_DEBOUNCE_MS, DEFAULT_WATCH_DEBOUNCE_MS),
     respectGitIgnore,
-    gitExecutablePath: respectGitIgnore ? Bun.which('git') : null,
+    gitExecutablePath: respectGitIgnore ? Bun.which("git") : null,
     serverBaseUrl: process.env.DEV_SERVER_URL ?? `http://localhost:${port}`,
     changeEndpointPath: getChangeEndpointPath(),
   };
@@ -144,16 +144,16 @@ function isGitIgnored(config: DevRunnerConfig, relativePath: string): boolean {
     return false;
   }
 
-  if (relativePath === '.git' || relativePath.startsWith('.git/')) {
+  if (relativePath === ".git" || relativePath.startsWith(".git/")) {
     return true;
   }
 
   const checkResult = Bun.spawnSync({
-    cmd: [config.gitExecutablePath, 'check-ignore', '--quiet', '--no-index', '--', relativePath],
+    cmd: [config.gitExecutablePath, "check-ignore", "--quiet", "--no-index", "--", relativePath],
     cwd: config.watchRoot,
-    stdin: 'ignore',
-    stdout: 'ignore',
-    stderr: 'ignore',
+    stdin: "ignore",
+    stdout: "ignore",
+    stderr: "ignore",
   });
 
   return checkResult.exitCode === 0;
@@ -161,23 +161,23 @@ function isGitIgnored(config: DevRunnerConfig, relativePath: string): boolean {
 
 function logRetryMode(config: DevRunnerConfig): void {
   if (config.watchEnabled) {
-    log(config, '\x1b[33m', 'Waiting for the next file change before retrying startup');
+    log(config, "\x1b[33m", "Waiting for the next file change before retrying startup");
     return;
   }
 
-  log(config, '\x1b[33m', 'Watch is disabled; no automatic retry will happen until you restart dev.ts');
+  log(config, "\x1b[33m", "Watch is disabled; no automatic retry will happen until you restart dev.ts");
 }
 
 async function notifyServerOfChange(config: DevRunnerConfig, file: string): Promise<void> {
   try {
     const response = await fetch(`${config.serverBaseUrl}${config.changeEndpointPath}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ file }),
     });
 
     if (!response.ok) {
-      log(config, '\x1b[31m', `Failed to notify change (${response.status}) for ${file}`);
+      log(config, "\x1b[31m", `Failed to notify change (${response.status}) for ${file}`);
     }
   } catch {
     return;
@@ -190,15 +190,15 @@ function handleChildExit(config: DevRunnerConfig, state: DevRunnerState, exitCod
   }
 
   if (exitCode === config.restartExitCode) {
-    log(config, '\x1b[33m', `Restart requested (exit code ${exitCode})`);
-    start(config, state, 'restart request');
+    log(config, "\x1b[33m", `Restart requested (exit code ${exitCode})`);
+    start(config, state, "restart request");
     return;
   }
 
   if (exitCode === 0) {
-    log(config, '\x1b[33m', 'Child process exited normally');
+    log(config, "\x1b[33m", "Child process exited normally");
   } else {
-    log(config, '\x1b[31m', `Child process exited with code ${exitCode}`);
+    log(config, "\x1b[31m", `Child process exited with code ${exitCode}`);
   }
 
   logRetryMode(config);
@@ -213,7 +213,7 @@ function start(config: DevRunnerConfig, state: DevRunnerState, reason: string): 
 
   try {
     const spawnedProc = spawn(config.command, {
-      stdio: ['inherit', 'inherit', 'inherit'],
+      stdio: ["inherit", "inherit", "inherit"],
       env: {
         ...process.env,
         NODE_ENV: config.nodeEnv,
@@ -223,7 +223,7 @@ function start(config: DevRunnerConfig, state: DevRunnerState, reason: string): 
 
     state.proc = spawnedProc;
     state.isStarting = false;
-    log(config, '\x1b[32m', `Started "${config.command.join(' ')}" (${reason}, pid ${spawnedProc.pid})`);
+    log(config, "\x1b[32m", `Started "${config.command.join(" ")}" (${reason}, pid ${spawnedProc.pid})`);
 
     void spawnedProc.exited
       .then((exitCode) => {
@@ -237,7 +237,7 @@ function start(config: DevRunnerConfig, state: DevRunnerState, reason: string): 
         }
 
         const errorMessage = error instanceof Error ? error.message : String(error);
-        log(config, '\x1b[31m', `Failed while waiting for child process exit: ${errorMessage}`);
+        log(config, "\x1b[31m", `Failed while waiting for child process exit: ${errorMessage}`);
         logRetryMode(config);
       });
   } catch (error) {
@@ -245,19 +245,19 @@ function start(config: DevRunnerConfig, state: DevRunnerState, reason: string): 
     state.proc = null;
 
     const errorMessage = error instanceof Error ? error.message : String(error);
-    log(config, '\x1b[31m', `Failed to start "${config.command.join(' ')}": ${errorMessage}`);
+    log(config, "\x1b[31m", `Failed to start "${config.command.join(" ")}": ${errorMessage}`);
     logRetryMode(config);
   }
 }
 
 function setupWatchers(config: DevRunnerConfig, state: DevRunnerState): FSWatcher[] {
   if (!config.watchEnabled) {
-    log(config, '\x1b[36m', 'File watching disabled (set DEV_WATCH=1 to enable)');
+    log(config, "\x1b[36m", "File watching disabled (set DEV_WATCH=1 to enable)");
     return [];
   }
 
   if (!existsSync(config.watchRoot)) {
-    log(config, '\x1b[31m', `Watch root does not exist: ${config.watchRoot}`);
+    log(config, "\x1b[31m", `Watch root does not exist: ${config.watchRoot}`);
     return [];
   }
 
@@ -296,10 +296,10 @@ function setupWatchers(config: DevRunnerConfig, state: DevRunnerState): FSWatche
           return;
         }
 
-        log(config, '\x1b[33m', `Change detected: ${fileToSend}`);
+        log(config, "\x1b[33m", `Change detected: ${fileToSend}`);
 
         if (!state.proc && !state.isStarting) {
-          log(config, '\x1b[36m', `Retrying startup because ${fileToSend} changed`);
+          log(config, "\x1b[36m", `Retrying startup because ${fileToSend} changed`);
           start(config, state, `file change (${fileToSend})`);
           return;
         }
@@ -308,14 +308,14 @@ function setupWatchers(config: DevRunnerConfig, state: DevRunnerState): FSWatche
       }, config.watchDebounceMs);
     });
 
-    log(config, '\x1b[36m', `Watching root: ${config.watchRoot}`);
-    log(config, '\x1b[36m', `Watch glob: ${config.watchPattern}`);
-    log(config, '\x1b[36m', `Respect .gitignore: ${config.respectGitIgnore ? 'yes' : 'no'}`);
+    log(config, "\x1b[36m", `Watching root: ${config.watchRoot}`);
+    log(config, "\x1b[36m", `Watch glob: ${config.watchPattern}`);
+    log(config, "\x1b[36m", `Respect .gitignore: ${config.respectGitIgnore ? "yes" : "no"}`);
 
     return [watcher];
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    log(config, '\x1b[31m', `Failed to watch ${config.watchRoot}: ${errorMessage}`);
+    log(config, "\x1b[31m", `Failed to watch ${config.watchRoot}: ${errorMessage}`);
     return [];
   }
 }
@@ -326,7 +326,7 @@ function shutdown(config: DevRunnerConfig, state: DevRunnerState, watchers: FSWa
   }
 
   state.isShuttingDown = true;
-  log(config, '\x1b[36m', `Shutting down (${signal})`);
+  log(config, "\x1b[36m", `Shutting down (${signal})`);
 
   for (const watcher of watchers) {
     watcher.close();
@@ -347,23 +347,23 @@ export function runDevRunner(): void {
     isStarting: false,
   };
 
-  log(config, '\x1b[36m', `Watching command: ${config.command.join(' ')}`);
-  log(config, '\x1b[36m', `Restart exit code: ${config.restartExitCode}`);
-  log(config, '\x1b[36m', `Dev server URL: ${config.serverBaseUrl}`);
-  log(config, '\x1b[36m', `Change endpoint path: ${config.changeEndpointPath}`);
+  log(config, "\x1b[36m", `Watching command: ${config.command.join(" ")}`);
+  log(config, "\x1b[36m", `Restart exit code: ${config.restartExitCode}`);
+  log(config, "\x1b[36m", `Dev server URL: ${config.serverBaseUrl}`);
+  log(config, "\x1b[36m", `Change endpoint path: ${config.changeEndpointPath}`);
 
   if (config.respectGitIgnore && !config.gitExecutablePath) {
-    log(config, '\x1b[33m', 'git not found, so .gitignore filtering is unavailable');
+    log(config, "\x1b[33m", "git not found, so .gitignore filtering is unavailable");
   }
 
   if (config.hintMessage) {
-    log(config, '\x1b[36m', config.hintMessage);
+    log(config, "\x1b[36m", config.hintMessage);
   }
 
   const watchers = setupWatchers(config, state);
 
-  start(config, state, 'initial boot');
+  start(config, state, "initial boot");
 
-  process.on('SIGINT', () => shutdown(config, state, watchers, 'SIGINT'));
-  process.on('SIGTERM', () => shutdown(config, state, watchers, 'SIGTERM'));
+  process.on("SIGINT", () => shutdown(config, state, watchers, "SIGINT"));
+  process.on("SIGTERM", () => shutdown(config, state, watchers, "SIGTERM"));
 }

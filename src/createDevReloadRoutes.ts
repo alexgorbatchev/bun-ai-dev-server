@@ -1,4 +1,4 @@
-import { DEFAULT_CHANGE_ENDPOINT_PATH, DEFAULT_RESTART_ENDPOINT_PATH, DEFAULT_RESTART_EXIT_CODE } from './constants';
+import { DEFAULT_CHANGE_ENDPOINT_PATH, DEFAULT_RESTART_ENDPOINT_PATH, DEFAULT_RESTART_EXIT_CODE } from "./constants";
 
 const DEFAULT_RESTART_DELAY_MS = 100;
 
@@ -31,7 +31,7 @@ function normalizeEndpointPath(value: string | undefined, fallbackValue: string)
     return fallbackValue;
   }
 
-  if (normalizedValue.startsWith('/')) {
+  if (normalizedValue.startsWith("/")) {
     return normalizedValue;
   }
 
@@ -39,7 +39,7 @@ function normalizeEndpointPath(value: string | undefined, fallbackValue: string)
 }
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
+  return typeof value === "object" && value !== null;
 }
 
 function getChangedFile(payload: unknown): string | null {
@@ -48,7 +48,7 @@ function getChangedFile(payload: unknown): string | null {
   }
 
   const file = payload.file;
-  if (typeof file !== 'string') {
+  if (typeof file !== "string") {
     return null;
   }
 
@@ -61,7 +61,7 @@ function getChangedFile(payload: unknown): string | null {
 }
 
 function createNotAvailableResponse(): Response {
-  return Response.json({ error: 'Not available' }, { status: 403 });
+  return Response.json({ error: "Not available" }, { status: 403 });
 }
 
 function broadcastDevChange(
@@ -84,7 +84,7 @@ export function createDevReloadRoutes(options: CreateDevReloadRoutesOptions = {}
   const {
     onRestart,
     restartExitCode = DEFAULT_RESTART_EXIT_CODE,
-    isDevelopment = process.env.NODE_ENV === 'development',
+    isDevelopment = process.env.NODE_ENV === "development",
     restartDelayMs = DEFAULT_RESTART_DELAY_MS,
     changeEndpointPath: changeEndpointPathOption,
     restartEndpointPath: restartEndpointPathOption,
@@ -96,9 +96,11 @@ export function createDevReloadRoutes(options: CreateDevReloadRoutesOptions = {}
   const devClients = new Set<DevReloadClientController>();
   let hasChanges = false;
 
-  const runRestart = onRestart ?? ((exitCode: number): void => {
-    setTimeout(() => process.exit(exitCode), restartDelayMs);
-  });
+  const runRestart =
+    onRestart ??
+    ((exitCode: number): void => {
+      setTimeout(() => process.exit(exitCode), restartDelayMs);
+    });
 
   return {
     [restartEndpointPath]: {
@@ -120,7 +122,7 @@ export function createDevReloadRoutes(options: CreateDevReloadRoutesOptions = {}
 
         let streamController: DevReloadClientController | null = null;
 
-        request.signal.addEventListener('abort', () => {
+        request.signal.addEventListener("abort", () => {
           if (!streamController) {
             return;
           }
@@ -133,7 +135,7 @@ export function createDevReloadRoutes(options: CreateDevReloadRoutesOptions = {}
             start(controller): void {
               streamController = controller;
               devClients.add(controller);
-              controller.enqueue(encoder.encode('data: connected\n\n'));
+              controller.enqueue(encoder.encode("data: connected\n\n"));
               controller.enqueue(encoder.encode(`data: ${JSON.stringify({ dirty: hasChanges })}\n\n`));
             },
             cancel(): void {
@@ -147,9 +149,9 @@ export function createDevReloadRoutes(options: CreateDevReloadRoutesOptions = {}
           }),
           {
             headers: {
-              'Content-Type': 'text/event-stream',
-              'Cache-Control': 'no-cache',
-              Connection: 'keep-alive',
+              "Content-Type": "text/event-stream",
+              "Cache-Control": "no-cache",
+              Connection: "keep-alive",
             },
           },
         );

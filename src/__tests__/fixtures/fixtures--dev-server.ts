@@ -1,6 +1,7 @@
-import { createDevReloadRoutes } from '../../index.ts';
+import { createDevReloadRoutes } from "../../index.ts";
 
-import { FIXTURE_HEALTH_ENDPOINT_PATH, type FixtureHealthResponse } from './fixtures--dev-server-contract.ts';
+import type { FixtureHealthResponse } from "../FixtureHealthResponse.ts";
+import { FIXTURE_HEALTH_ENDPOINT_PATH } from "./fixtures--dev-server-contract.ts";
 
 function parsePort(value: string | undefined, fallbackPort: number): number {
   if (!value) {
@@ -32,7 +33,7 @@ function startFixtureDevServer(): void {
   });
 
   Bun.serve({
-    hostname: '127.0.0.1',
+    hostname: "127.0.0.1",
     port,
     routes: {
       ...routes,
